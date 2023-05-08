@@ -2,8 +2,7 @@
 
 ## Synopsis
 
-Get secure access to your private resources through HCP Boundary.  
-In stead of traditional solutions like jump-boxes or VPN's, (a part of) Boundary does not need any ingress firewall rules. In stead, it only needs egress access to an upstream worker.  
+Get secure access to your private resources through HCP Boundary. In stead of traditional solutions like jump-boxes or VPN's, (a part of) Boundary does not need any ingress firewall rules. In stead, it only needs egress access to an upstream worker.  
 
 ## Requirements
 
@@ -194,11 +193,40 @@ Terraform will provision the following:
 ### HCP Boundary (2)
 
 1. Create an Org
+   Give the Org a name.
 2. Create a Project
-3. Create a Target
+   Give the Org a name.
+3. Create an SSH Target
+   Set the default port to 22.
+   Set the default address to the private IP of `server1`.
+   Use `"ingress" in "/tags/type"` for the Ingress filter.
+   Use `"egress" in "/tags/type"` for the Egress filter.
+5. Create a static Credentials Store
+   Give the Credentials Store a name.
+6. Create a Credential
+   Give it the name serveradmin.
+   Select username & key pair.
+   Use the server admin user and use the `server.pem` local file contents. 
+7. Go back to the Target
+   Inject the SSH credentials.
+7. Create a Generic TCP Target
+   Set the default port to 80.
+   Set the default address to the private IP of `server3`.
+   Use `"ingress" in "/tags/type"` for the Ingress filter.
+   Use `"egress" in "/tags/type"` for the Egress filter.
 
 ### Client
 
 1. Authenticate to HCP Boundary
-2. Connect to the SSH target
-3. Connect to the HTTP target
+   ```shell
+   boundary authenticate
+   ```
+   Be sure you have the `BOUNDARY_ADDR` and `BOUNDARY_AUTH_METHOD_ID` environment variables set.
+3. Connect to the SSH target
+   ```shell
+   boundary connect ssh -target-id=<target-id>
+   ```
+4. Connect to the HTTP target
+   ```shell
+   boundary connect http -target-id=<target-id> -scheme http
+   ```
