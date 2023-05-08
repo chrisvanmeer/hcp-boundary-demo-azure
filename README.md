@@ -209,11 +209,6 @@ Terraform will provision the following:
    Use the server admin user and use the `server.pem` local file contents. 
 7. Go back to the Target  
    Inject the SSH credentials.
-7. Create a Generic TCP Target  
-   Set the default port to 80.  
-   Set the default address to the private IP of `server3`.  
-   Use `"ingress" in "/tags/type"` for the Ingress filter.  
-   Use `"egress" in "/tags/type"` for the Egress filter.
 
 ### Client
 
@@ -225,8 +220,4 @@ Terraform will provision the following:
 3. Connect to the SSH target
    ```shell
    boundary connect ssh -target-id=<target-id>
-   ```
-4. Connect to the HTTP target
-   ```shell
-   boundary connect http -target-id=<target-id> -scheme http
    ```
