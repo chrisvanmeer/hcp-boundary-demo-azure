@@ -280,6 +280,10 @@ resource "local_file" "cloudinit" {
         path: /usr/share/nginx/index.html
         content: |
           You are accessing this page through Boundary.
+      - owner: root:root
+        path: /var/www/html/index.html
+        content: |
+          You are accessing this page through Boundary.
     runcmd:
       - service nginx restart
   EOT
@@ -331,8 +335,7 @@ resource "azurerm_linux_virtual_machine" "worker-egress" {
 
   admin_ssh_key {
     username   = var.worker_username
-    public_key = file(var.worker_ssh_pubkey)
-    # public_key = tls_private_key.egress.public_key_openssh
+    public_key = tls_private_key.egress.public_key_openssh
   }
 
   os_disk {
