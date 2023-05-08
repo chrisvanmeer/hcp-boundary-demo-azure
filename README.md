@@ -11,7 +11,7 @@ This repository is meant for using during a live demo and expects:
 - You have Terraform installed locally
 - You have access to HCP
 - You have a valid Azure subscription
-  - You are already authenticated through `az login`
+- You are already authenticated through `az login`
 
 ## Terraform
 
@@ -114,7 +114,7 @@ Terraform will provision the following:
    sudo systemctl status boundary-worker | less
    ```
    Look for the *Worker Auth Registration Request* and copy this value.
-8. Register the worker in HCP Boundary
+8. Register the worker in HCP Boundary  
    Leave all the fields blank, except for the *Worker Auth Registration Request*.  
    Rename the resource to `worker-ingress` for easy recognition.
 
@@ -186,7 +186,7 @@ Terraform will provision the following:
    sudo systemctl status boundary-worker | less
    ```
    Look for the *Worker Auth Registration Request* and copy this value.
-12. Register the worker in HCP Boundary
+12. Register the worker in HCP Boundary  
    Leave all the fields blank, except for the *Worker Auth Registration Request*.  
    Rename the resource to `worker-egress` for easy recognition.
 
