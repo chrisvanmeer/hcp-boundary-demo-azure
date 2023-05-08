@@ -84,7 +84,7 @@ Terraform will provision the following:
    }
    EOF
    ```
-   Replace `<cluster-id>` with the HCP Boundary Cluster ID.
+   Replace `<cluster-id>` with the HCP Boundary Cluster ID.  
    Replace `<external-addr>` with the public IP address of this VM.
 5. Create systemd unit file
    ```shell
@@ -115,7 +115,7 @@ Terraform will provision the following:
    ```
    Look for the *Worker Auth Registration Request* and copy this value.
 8. Register the worker in HCP Boundary
-   Leave all the fields blank, except for the *Worker Auth Registration Request*.
+   Leave all the fields blank, except for the *Worker Auth Registration Request*.  
    Rename the resource to `worker-ingress` for easy recognition.
 
 ### Egress worker
@@ -187,32 +187,32 @@ Terraform will provision the following:
    ```
    Look for the *Worker Auth Registration Request* and copy this value.
 12. Register the worker in HCP Boundary
-   Leave all the fields blank, except for the *Worker Auth Registration Request*.
+   Leave all the fields blank, except for the *Worker Auth Registration Request*.  
    Rename the resource to `worker-egress` for easy recognition.
 
 ### HCP Boundary (2)
 
-1. Create an Org
+1. Create an Org  
    Give the Org a name.
-2. Create a Project
+2. Create a Project  
    Give the Org a name.
-3. Create an SSH Target
-   Set the default port to 22.
-   Set the default address to the private IP of `server1`.
-   Use `"ingress" in "/tags/type"` for the Ingress filter.
+3. Create an SSH Target  
+   Set the default port to 22.  
+   Set the default address to the private IP of `server1`.  
+   Use `"ingress" in "/tags/type"` for the Ingress filter.  
    Use `"egress" in "/tags/type"` for the Egress filter.
-5. Create a static Credentials Store
+5. Create a static Credentials Store  
    Give the Credentials Store a name.
-6. Create a Credential
-   Give it the name serveradmin.
-   Select username & key pair.
+6. Create a Credential  
+   Give it the name serveradmin.  
+   Select username & key pair.  
    Use the server admin user and use the `server.pem` local file contents. 
-7. Go back to the Target
+7. Go back to the Target  
    Inject the SSH credentials.
-7. Create a Generic TCP Target
-   Set the default port to 80.
-   Set the default address to the private IP of `server3`.
-   Use `"ingress" in "/tags/type"` for the Ingress filter.
+7. Create a Generic TCP Target  
+   Set the default port to 80.  
+   Set the default address to the private IP of `server3`.  
+   Use `"ingress" in "/tags/type"` for the Ingress filter.  
    Use `"egress" in "/tags/type"` for the Egress filter.
 
 ### Client
