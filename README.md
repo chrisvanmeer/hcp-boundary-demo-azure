@@ -3,9 +3,7 @@
 ## Synopsis
 
 Get secure access to your private resources through HCP Boundary.  
-In stead of traditional solutions like jump-boxes or VPN's, (a part of)  
-Boundary does not need any ingress firewall rules. In stead, it only needs  
-egress access to an upstream worker.  
+In stead of traditional solutions like jump-boxes or VPN's, (a part of) Boundary does not need any ingress firewall rules. In stead, it only needs egress access to an upstream worker.  
 
 ## Requirements
 
