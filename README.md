@@ -47,7 +47,8 @@ Terraform will provision the following:
    ```shell
    export BOUNDARY_ADDR=<cluster_url>
    ```
-4. Click on Auth Methods and copy the ID for the *password* auth method
+4. Log in to the Admin UI
+5. Click on Auth Methods and copy the ID for the *password* auth method
    ```shell
    export BOUNDARY_AUTH_METHOD_ID=<auth_method_id>
    ```
