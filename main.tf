@@ -4,6 +4,10 @@
 
 terraform {
   required_providers {
+    azuread = {
+      source  = "hashicorp/azuread"
+      version = "2.38.0"
+    }
     azurerm = {
       source  = "hashicorp/azurerm"
       version = "3.55.0"
@@ -26,6 +30,9 @@ terraform {
 #############
 # PROVIDERS #
 #############
+
+provider "azuread" {
+}
 
 provider "azurerm" {
   features {}
@@ -60,6 +67,13 @@ variable "worker_ssh_pubkey" {
   default = "~/.ssh/id_rsa.pub"
 }
 
+##################################
+# DATA SOURCES FOR SUBSCRIPTION #
+##################################
+
+data "azurerm_subscription" "primary" {}
+data "azuread_client_config" "current" {}
+
 ##################
 # RESOURCE GROUP #
 ##################
@@ -68,6 +82,30 @@ variable "worker_ssh_pubkey" {
 resource "azurerm_resource_group" "rg" {
   name     = var.resource_group_name
   location = var.resource_group_location
+}
+
+###################
+# AD APPLICATION #
+##################
+
+# Ensure app registration
+resource "azuread_application" "boundary_app" {
+  display_name = "Boundary App"
+  owners       = [data.azuread_client_config.current.object_id]
+
+  app_role {
+    allowed_member_types = ["Application"]
+    description          = "Reader role enabling app to read subscription details"
+    display_name         = "Reader"
+    enabled              = true
+    id                   = "1b19509b-32b1-4e9f-b71d-4992aa991967"
+    value                = "Read.All"
+  }
+}
+
+# Create a client secret
+resource "azuread_application_password" "client_secret" {
+  application_object_id = azuread_application.boundary_app.object_id
 }
 
 ############
@@ -496,4 +534,21 @@ output "server2" {
 
 output "server3" {
   value = azurerm_linux_virtual_machine.server3.private_ip_address
+}
+
+output "azure-tenant-id" {
+  value = data.azurerm_subscription.primary.tenant_id
+}
+
+output "azure-subscription-id" {
+  value = data.azurerm_subscription.primary.subscription_id
+}
+
+output "azure-client-id" {
+  value = data.azuread_client_config.current.client_id
+}
+
+output "azure-client-secret" {
+  value     = azuread_application_password.client_secret.value
+  sensitive = true
 }
