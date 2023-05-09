@@ -262,7 +262,7 @@ Terraform will create outputs for all of the virtual machine IP addresses.
 4. Try again
 
    ```shell
-   boundary connect ssh -target-id=<target-id> -- -l boundary -i servers.pem
+   boundary connect ssh -target-id=<target-id> -- -l serveradmin -i servers.pem
    ```
 
 You should be logged into `server1`.
