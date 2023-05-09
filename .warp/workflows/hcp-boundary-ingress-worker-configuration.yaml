@@ -1,0 +1,36 @@
+---
+name: HCP Boundary Ingress worker configuration
+command: |-
+  sudo tee {{file}} > /dev/null << EOF
+  disable_mlock           = true
+  hcp_boundary_cluster_id = "{{cluster_id}}"
+
+  listener "tcp" {
+    address = "0.0.0.0:9202"
+    purpose = "proxy"
+  }
+
+  worker {
+    public_addr        = "{{external_addr}}"
+    auth_storage_path = "/opt/boundary/ingress-worker"
+    tags {
+      type = ["ingress"]
+    }
+  }
+  EOF
+tags:
+  - boundary
+description: Creates the configuration for the ingress worker
+arguments:
+  - name: file
+    description: The output file
+    default_value: /etc/boundary.d/ingress-worker.hcl
+  - name: cluster_id
+    description: The HCP Boundary Cluster ID
+    default_value: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+  - name: external_addr
+    description: The external IP address / DNS record for the Ingress Worker
+    default_value: 1.2.3.4
+author: Chris van Meer
+author_url: https://chrisvanmeer.nl
+shells: []

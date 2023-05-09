@@ -1,0 +1,32 @@
+---
+name: HCP Boundary Worker systemd unit
+command: |-
+  sudo tee {{file}} > /dev/null << EOF
+  [Unit]
+  Description=Boundary Worker Service
+  Wants=network-online.target
+  After=network-online.target
+
+  [Service]
+  User=boundary
+  Group=boundary
+  Type=simple
+  ExecStart=/usr/bin/boundary-worker server -config="{{config}}"
+
+  [Install]
+  WantedBy=multi-user.target
+  EOF
+tags:
+  - boundary
+  - configuration
+description: Creates a systemd unit file for the HCP Boundary worker
+arguments:
+  - name: file
+    description: The output file
+    default_value: /usr/lib/systemd/system/boundary-worker.service
+  - name: config
+    description: Location of the config file
+    default_value: /etc/boundary.d/ingress-worker.hcl
+author: Chris van Meer
+author_url: https://chrisvanmeer.nl
+shells: []

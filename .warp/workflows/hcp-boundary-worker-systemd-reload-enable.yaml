@@ -1,0 +1,12 @@
+---
+name: HCP Boundary Worker reload systemd and start worker
+command: |-
+  sudo systemctl daemon-reload
+  sudo systemctl enable --now boundary-worker
+tags:
+  - boundary
+  - configuration
+description: Reloads the systemd daemon, then enables and starts the boundary-worker service
+author: Chris van Meer
+author_url: https://chrisvanmeer.nl
+shells: []
