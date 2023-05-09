@@ -12,6 +12,10 @@ terraform {
       source  = "hashicorp/local"
       version = "2.4.0"
     }
+    random = {
+      source  = "hashicorp/random"
+      version = "3.5.1"
+    }
     tls = {
       source  = "hashicorp/tls"
       version = "4.0.4"
@@ -28,6 +32,9 @@ provider "azurerm" {
 }
 
 provider "local" {
+}
+
+provider "random" {
 }
 
 provider "tls" {
@@ -51,9 +58,6 @@ variable "server_username" {
 }
 variable "worker_ssh_pubkey" {
   default = "~/.ssh/id_rsa.pub"
-}
-variable "storage_account_name" {
-  default = "boundary"
 }
 
 ##################
@@ -256,8 +260,16 @@ resource "local_file" "servers_private_key" {
 #  BOOT DIAGNOSTICS   #
 #######################
 
+resource "random_string" "storage_account" {
+  length  = 10
+  lower   = true
+  numeric = true
+  special = false
+  upper   = false
+}
+
 resource "azurerm_storage_account" "boundary" {
-  name                     = var.storage_account_name
+  name                     = "boundary${random_string.storage_account.id}"
   resource_group_name      = azurerm_resource_group.rg.name
   location                 = azurerm_resource_group.rg.location
   account_tier             = "Standard"
@@ -272,20 +284,19 @@ resource "local_file" "cloudinit" {
   filename = "${path.module}/cloudinit.yaml"
   content  = <<-EOT
     #cloud-config
-    package_upgrade: true
     packages:
       - nginx
     write_files:
       - owner: root:root
-        path: /usr/share/nginx/index.html
-        content: |
-          You are accessing this page through Boundary.
-      - owner: root:root
-        path: /var/www/html/index.html
+        path: /usr/share/nginx/html/index.html
         content: |
           You are accessing this page through Boundary.
     runcmd:
-      - service nginx restart
+      - firewall-cmd --add-service=http --zone=public --permanent
+      - firewall-cmd --reload
+      - echo "You are accessing this page through Boundary." > /usr/share/nginx/html/index.html
+      - restorecon -Rv /usr/share/nginx/html
+      - systemctl enable --now nginx
   EOT
 }
 
@@ -319,6 +330,10 @@ resource "azurerm_linux_virtual_machine" "worker-ingress" {
     offer     = "0001-com-ubuntu-server-jammy"
     sku       = "22_04-lts-gen2"
     version   = "latest"
+  }
+
+  boot_diagnostics {
+    storage_account_uri = azurerm_storage_account.boundary.primary_blob_endpoint
   }
 }
 
@@ -382,6 +397,10 @@ resource "azurerm_linux_virtual_machine" "server1" {
     sku       = "22_04-lts-gen2"
     version   = "latest"
   }
+
+  boot_diagnostics {
+    storage_account_uri = azurerm_storage_account.boundary.primary_blob_endpoint
+  }
 }
 
 # server2
@@ -410,6 +429,10 @@ resource "azurerm_linux_virtual_machine" "server2" {
     offer     = "debian-11"
     sku       = "11"
     version   = "latest"
+  }
+
+  boot_diagnostics {
+    storage_account_uri = azurerm_storage_account.boundary.primary_blob_endpoint
   }
 }
 
@@ -443,6 +466,9 @@ resource "azurerm_linux_virtual_machine" "server3" {
     version   = "latest"
   }
 
+  boot_diagnostics {
+    storage_account_uri = azurerm_storage_account.boundary.primary_blob_endpoint
+  }
 }
 
 ###########
