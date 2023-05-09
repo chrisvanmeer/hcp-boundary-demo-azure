@@ -260,6 +260,7 @@ resource "local_file" "servers_private_key" {
 #  BOOT DIAGNOSTICS   #
 #######################
 
+# Ensure a random string to be sure it is unique
 resource "random_string" "storage_account" {
   length  = 10
   lower   = true
@@ -268,6 +269,7 @@ resource "random_string" "storage_account" {
   upper   = false
 }
 
+# Ensure storage account
 resource "azurerm_storage_account" "boundary" {
   name                     = "boundary${random_string.storage_account.id}"
   resource_group_name      = azurerm_resource_group.rg.name
@@ -280,6 +282,7 @@ resource "azurerm_storage_account" "boundary" {
 # CLOUD INIT FOR WEBSERVER #
 ############################
 
+# Ensure cloud-init file
 resource "local_file" "cloudinit" {
   filename = "${path.module}/cloudinit.yaml"
   content  = <<-EOT
