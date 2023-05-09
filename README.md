@@ -54,11 +54,6 @@ Terraform will create outputs for all of the virtual machine IP addresses.
    ```
 
 4. Log in to the Admin UI
-5. Click on Auth Methods and copy the ID for the *password* auth method
-
-   ```shell
-   export BOUNDARY_AUTH_METHOD_ID=<auth_method_id>
-   ```
 
 ### Ingress worker
 
