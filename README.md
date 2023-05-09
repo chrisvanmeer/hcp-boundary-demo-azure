@@ -15,7 +15,7 @@ This repository is meant for using during a live demo and expects:
 
 ## Schematic overview
 
-![Schematic overiew](schematic-overview.svg)
+![Schematic overiew](schematic-overview.png)
 
 ## Terraform
 
