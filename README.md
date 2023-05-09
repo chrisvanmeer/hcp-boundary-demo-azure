@@ -13,6 +13,10 @@ This repository is meant for using during a live demo and expects:
 - You have a valid Azure subscription
 - You are already authenticated through `az login`
 
+## Schematic overview
+
+![Schematic overiew](schematic-overview.png)
+
 ## Terraform
 
 Terraform will provision the following:  
