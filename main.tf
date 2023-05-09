@@ -552,3 +552,68 @@ output "azure-client-secret" {
   value     = azuread_application_password.client_secret.value
   sensitive = true
 }
+
+/*
+#####################
+# EXTRA CLIENTS FOR #
+# DYNAMIC HOST SET  #
+#####################
+variable "client_username" {
+  default = "johndoe"
+}
+variable "client_count" {
+  type    = number
+  default = 10
+}
+
+# Ensure NIC for server3
+resource "azurerm_network_interface" "clients" {
+  name                = format("client-%02d-nic", count.index + 1)
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  count               = var.client_count
+
+  ip_configuration {
+    name                          = "private-internal"
+    subnet_id                     = azurerm_subnet.private.id
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+
+resource "azurerm_linux_virtual_machine" "clients" {
+  name                = format("client-%02d", count.index + 1)
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+  size                = "Standard_B1s"
+  admin_username      = var.client_username
+  count               = 10
+  network_interface_ids = [
+    azurerm_network_interface.clients[count.index].id
+  ]
+
+  tags = {
+    service-type = "client"
+  }
+
+  admin_ssh_key {
+    username   = var.client_username
+    public_key = tls_private_key.servers.public_key_openssh
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts-gen2"
+    version   = "latest"
+  }
+
+  boot_diagnostics {
+    storage_account_uri = azurerm_storage_account.boundary.primary_blob_endpoint
+  }
+}
+*/
