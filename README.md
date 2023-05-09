@@ -201,7 +201,7 @@ Terraform will provision the following:
 2. Create a Project  
    Give the Org a name.
 3. Create an SSH Target  
-   Set the name *Server*
+   Set the name *Server TCP*
    Set the default port to 22.  
    Set the assigned address to the private IP of `server1`.  
    Use `"ingress" in "/tags/type"` for the Ingress filter.  
@@ -214,6 +214,7 @@ Terraform will provision the following:
    Use the server admin user and use the `server.pem` local file contents. 
 7. Go back to the Target  
    Inject the SSH credentials.
+8. Copy the Target ID
 
 ### Client (1)
 
@@ -222,13 +223,44 @@ Terraform will provision the following:
    boundary authenticate
    ```
    Be sure you have the `BOUNDARY_ADDR` and `BOUNDARY_AUTH_METHOD_ID` environment variables set.
-3. Connect to the Server target
+3. Connect to the *Server TCP* target
    ```shell
    boundary connect ssh -target-id=<target-id>
+   ```
+4. This should produce an error since we have not specified any SSH identity nor user
+5. Try again
+   ```shell
+   boundary connect ssh -target-id=<target-id> -- -l boundary -i servers.pem
    ```
 You should be logged into `server1`.
 
 ### HCP Boundary (3)
+
+1. Create an SSH Target  
+   Set the name *Server SSH*
+   Set the default port to 22.  
+   Set the assigned address to the private IP of `server1`.  
+   Use `"ingress" in "/tags/type"` for the Ingress filter.  
+   Use `"egress" in "/tags/type"` for the Egress filter.
+2. Create a static Credentials Store  
+   Give the Credentials Store a name.
+3. Create a Credential  
+   Give it the name *serveradmin*.  
+   Select *username & key pair*.  
+   Use the server admin user and use the `server.pem` local file contents. 
+4. Go back to the Target  
+   Inject the SSH credentials.
+5. Copy the Target ID
+
+### Client (2)
+
+1. Connect to the *Server SSH* target
+   ```shell
+   boundary connect ssh -target-id=<target-id>
+   ```
+You should be logged into `server1` without having to specify a user nor identity.
+
+### HCP Boundary (4)
 
 Next we will convert the target from a single destination to a Host Set.
 
@@ -243,13 +275,13 @@ Next we will convert the target from a single destination to a Host Set.
 6. Click on Hosts (within the Host Set)
 7. Click on Manage -> Add Existing Host
 8. Select the three hosts and click Add Hosts
-9. Return to your *Server* target
+9. Return to your *Server SSH* target
 10. Click on Host Sources and click on Add Host Sources
 11. Select the Host Set you just created and click on Add Host Sources
 12. You will receive a popup, choose Remove Address And Save
-13. You could change the name of the target from *Server* to *Servers*
+13. You could change the name of the target from *Server SSH* to *Servers SSH* (plural)
 
-### Client (2)
+### Client (3)
 
 1. Connect to the Servers target
    ```shell
@@ -259,21 +291,21 @@ Next we will convert the target from a single destination to a Host Set.
    Boundary selects a random host from the host set each time you connect.  
    After a few times you should have been connected to all three servers.
 
-### HCP Boundary (4)
+### HCP Boundary (5)
 
 In this last part we will create a Generic TCP target for our webserver
 
 1. Create a Generic TCP Target  
-   Set the name *Web*
+   Set the name *Web TCP*
    Set the default port to 80.  
    Set the assigned address to the private IP of `server3`.  
    Use `"ingress" in "/tags/type"` for the Ingress filter.  
    Use `"egress" in "/tags/type"` for the Egress filter.
 2. Copy the Target ID
    
-### Client (3)
+### Client (4)
 
-1. Connect to the Web target
+1. Connect to the *Web TCP* target
    ```shell
    boundary connect http -target-id=<target-id> -scheme http
    ```
