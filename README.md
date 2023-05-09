@@ -269,6 +269,7 @@ In this last part we will create a Generic TCP target for our webserver
    Set the assigned address to the private IP of `server3`.  
    Use `"ingress" in "/tags/type"` for the Ingress filter.  
    Use `"egress" in "/tags/type"` for the Egress filter.
+2. Copy the Target ID
    
 ### Client (3)
 
