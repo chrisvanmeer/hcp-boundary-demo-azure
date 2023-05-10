@@ -141,7 +141,7 @@ Terraform will create outputs for all of the virtual machine IP addresses.
 
 1. Log into Azure Portal
 2. Navigate to the `worker-egress` virtual machine
-3. Reset the password for the worker admin user
+3. Reset the password for the worker admin user (`boundary` set as default in Terraform)
 4. Navigate to the serial console
 5. Log in with the worker admin user
 6. Install the `boundary-worker-hcp` package
@@ -259,7 +259,7 @@ Terraform will create outputs for all of the virtual machine IP addresses.
    ```
 
 3. This should produce an error since we have not specified any SSH identity nor user
-4. Try again
+4. Try again with the server admin user (`serveradmin` set as default in Terraform)
 
    ```shell
    boundary connect ssh -target-id=<target-id> -- -l serveradmin -i servers.pem
