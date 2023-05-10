@@ -52,7 +52,7 @@ provider "tls" {
 #############
 
 variable "resource_group_name" {
-  default = "rg_boundary"
+  default = "rg-boundary"
 }
 variable "resource_group_location" {
   default = "West Europe"
@@ -67,13 +67,6 @@ variable "worker_ssh_pubkey" {
   default = "~/.ssh/id_rsa.pub"
 }
 
-##################################
-# DATA SOURCES FOR SUBSCRIPTION #
-##################################
-
-data "azurerm_subscription" "primary" {}
-data "azuread_client_config" "current" {}
-
 ##################
 # RESOURCE GROUP #
 ##################
@@ -84,37 +77,13 @@ resource "azurerm_resource_group" "rg" {
   location = var.resource_group_location
 }
 
-###################
-# AD APPLICATION #
-##################
-
-# Ensure app registration
-resource "azuread_application" "boundary_app" {
-  display_name = "Boundary App"
-  owners       = [data.azuread_client_config.current.object_id]
-
-  app_role {
-    allowed_member_types = ["Application"]
-    description          = "Reader role enabling app to read subscription details"
-    display_name         = "Reader"
-    enabled              = true
-    id                   = "1b19509b-32b1-4e9f-b71d-4992aa991967"
-    value                = "Read.All"
-  }
-}
-
-# Create a client secret
-resource "azuread_application_password" "client_secret" {
-  application_object_id = azuread_application.boundary_app.object_id
-}
-
 ############
 # NETWORKS #
 ############
 
 # Ensure public virtual network for ingress worker
 resource "azurerm_virtual_network" "public" {
-  name                = "public-network"
+  name                = "vnet-public"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
   address_space       = ["10.0.0.0/16"]
@@ -122,7 +91,7 @@ resource "azurerm_virtual_network" "public" {
 
 # Ensure private virtual network for egress worker
 resource "azurerm_virtual_network" "private" {
-  name                = "private-network"
+  name                = "vnet-private"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
   address_space       = ["100.0.0.0/16"]
@@ -134,7 +103,7 @@ resource "azurerm_virtual_network" "private" {
 
 # Ensure subnet for public network
 resource "azurerm_subnet" "public" {
-  name                 = "public-subnet"
+  name                 = "subnet-public"
   resource_group_name  = azurerm_resource_group.rg.name
   virtual_network_name = azurerm_virtual_network.public.name
   address_prefixes     = ["10.0.1.0/24"]
@@ -142,7 +111,7 @@ resource "azurerm_subnet" "public" {
 
 # Ensure subnet for private network
 resource "azurerm_subnet" "private" {
-  name                 = "private-subnet"
+  name                 = "subnet-private"
   resource_group_name  = azurerm_resource_group.rg.name
   virtual_network_name = azurerm_virtual_network.private.name
   address_prefixes     = ["100.0.1.0/24"]
@@ -154,7 +123,7 @@ resource "azurerm_subnet" "private" {
 
 # Ensure NSG for public subnet
 resource "azurerm_network_security_group" "nsg" {
-  name                = "boundary-nsg"
+  name                = "nsg-boundary"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
 
@@ -183,7 +152,7 @@ resource "azurerm_subnet_network_security_group_association" "nsg_association" {
 
 # Ensure public IP address for ingress worker
 resource "azurerm_public_ip" "public" {
-  name                = "worker-ingress-public-ip"
+  name                = "ip-worker-ingress"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
   allocation_method   = "Static"
@@ -195,12 +164,12 @@ resource "azurerm_public_ip" "public" {
 
 # Ensure NIC for worker-ingress
 resource "azurerm_network_interface" "worker-ingress" {
-  name                = "worker-ingress-nic"
+  name                = "nic-worker-ingress"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
 
   ip_configuration {
-    name                          = "public-internal"
+    name                          = "internal"
     subnet_id                     = azurerm_subnet.public.id
     private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = azurerm_public_ip.public.id
@@ -209,51 +178,51 @@ resource "azurerm_network_interface" "worker-ingress" {
 
 # Ensure NIC for worker-egress
 resource "azurerm_network_interface" "worker-egress" {
-  name                = "worker-egress-nic"
+  name                = "nic-worker-egress"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
 
   ip_configuration {
-    name                          = "private-internal"
+    name                          = "internal"
     subnet_id                     = azurerm_subnet.private.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
-# Ensure NIC for server1
-resource "azurerm_network_interface" "server1" {
-  name                = "server1-nic"
+# Ensure NIC for server01
+resource "azurerm_network_interface" "server01" {
+  name                = "nic-server01"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
 
   ip_configuration {
-    name                          = "private-internal"
+    name                          = "internal"
     subnet_id                     = azurerm_subnet.private.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
-# Ensure NIC for server2
-resource "azurerm_network_interface" "server2" {
-  name                = "server2-nic"
+# Ensure NIC for server02
+resource "azurerm_network_interface" "server02" {
+  name                = "nic-server02"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
 
   ip_configuration {
-    name                          = "private-internal"
+    name                          = "internal"
     subnet_id                     = azurerm_subnet.private.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
 # Ensure NIC for server3
-resource "azurerm_network_interface" "server3" {
-  name                = "server3-nic"
+resource "azurerm_network_interface" "server03" {
+  name                = "nic-server03"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
 
   ip_configuration {
-    name                          = "private-internal"
+    name                          = "internal"
     subnet_id                     = azurerm_subnet.private.id
     private_ip_address_allocation = "Dynamic"
   }
@@ -309,7 +278,7 @@ resource "random_string" "storage_account" {
 
 # Ensure storage account
 resource "azurerm_storage_account" "boundary" {
-  name                     = "boundary${random_string.storage_account.id}"
+  name                     = "storage${random_string.storage_account.id}"
   resource_group_name      = azurerm_resource_group.rg.name
   location                 = azurerm_resource_group.rg.location
   account_tier             = "Standard"
@@ -347,7 +316,7 @@ resource "local_file" "cloudinit" {
 
 # worker-ingress
 resource "azurerm_linux_virtual_machine" "worker-ingress" {
-  name                = "worker-ingress"
+  name                = "vm-worker-ingress"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
   size                = "Standard_B1s"
@@ -362,6 +331,7 @@ resource "azurerm_linux_virtual_machine" "worker-ingress" {
   }
 
   os_disk {
+    name                 = "disk-os-worker-ingress"
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
   }
@@ -380,7 +350,7 @@ resource "azurerm_linux_virtual_machine" "worker-ingress" {
 
 # worker-egress
 resource "azurerm_linux_virtual_machine" "worker-egress" {
-  name                = "worker-egress"
+  name                = "vm-worker-egress"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
   size                = "Standard_B1s"
@@ -395,6 +365,7 @@ resource "azurerm_linux_virtual_machine" "worker-egress" {
   }
 
   os_disk {
+    name                 = "disk-os-worker-egress"
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
   }
@@ -412,14 +383,14 @@ resource "azurerm_linux_virtual_machine" "worker-egress" {
 }
 
 # server1
-resource "azurerm_linux_virtual_machine" "server1" {
-  name                = "server1"
+resource "azurerm_linux_virtual_machine" "server01" {
+  name                = "vm-server01"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
   size                = "Standard_B1s"
   admin_username      = var.server_username
   network_interface_ids = [
-    azurerm_network_interface.server1.id
+    azurerm_network_interface.server01.id
   ]
 
   admin_ssh_key {
@@ -428,6 +399,7 @@ resource "azurerm_linux_virtual_machine" "server1" {
   }
 
   os_disk {
+    name                 = "disk-os-server01"
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
   }
@@ -445,14 +417,14 @@ resource "azurerm_linux_virtual_machine" "server1" {
 }
 
 # server2
-resource "azurerm_linux_virtual_machine" "server2" {
-  name                = "server2"
+resource "azurerm_linux_virtual_machine" "server02" {
+  name                = "vm-server02"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
   size                = "Standard_B1s"
   admin_username      = var.server_username
   network_interface_ids = [
-    azurerm_network_interface.server2.id
+    azurerm_network_interface.server02.id
   ]
 
   admin_ssh_key {
@@ -461,6 +433,7 @@ resource "azurerm_linux_virtual_machine" "server2" {
   }
 
   os_disk {
+    name                 = "disk-os-server02"
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
   }
@@ -478,14 +451,14 @@ resource "azurerm_linux_virtual_machine" "server2" {
 }
 
 # server3
-resource "azurerm_linux_virtual_machine" "server3" {
-  name                = "server3"
+resource "azurerm_linux_virtual_machine" "server03" {
+  name                = "vm-server03"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
   size                = "Standard_B1s"
   admin_username      = var.server_username
   network_interface_ids = [
-    azurerm_network_interface.server3.id
+    azurerm_network_interface.server03.id
   ]
 
   custom_data = base64encode(local_file.cloudinit.content)
@@ -496,6 +469,7 @@ resource "azurerm_linux_virtual_machine" "server3" {
   }
 
   os_disk {
+    name                 = "disk-os-server03"
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
   }
@@ -516,24 +490,157 @@ resource "azurerm_linux_virtual_machine" "server3" {
 # OUTPUTS #
 ###########
 
-output "worker-ingress" {
-  value = azurerm_linux_virtual_machine.worker-ingress.public_ip_address
+output "vm-server01" {
+  value = azurerm_linux_virtual_machine.server01.private_ip_address
 }
 
-output "worker-egress" {
+output "vm-server02" {
+  value = azurerm_linux_virtual_machine.server02.private_ip_address
+}
+
+output "vm-server03" {
+  value = azurerm_linux_virtual_machine.server03.private_ip_address
+}
+
+output "vm-worker-egress" {
   value = azurerm_linux_virtual_machine.worker-egress.private_ip_address
 }
 
-output "server1" {
-  value = azurerm_linux_virtual_machine.server1.private_ip_address
+output "vm-worker-ingress" {
+  value = azurerm_linux_virtual_machine.worker-ingress.public_ip_address
 }
 
-output "server2" {
-  value = azurerm_linux_virtual_machine.server2.private_ip_address
+/*
+################################################################################
+################################################################################
+#    BELOW ARE OPTIONAL RESOURCES TO EXPERIMENT WITH DYNAMIC HOST CATALOGS     #
+#                  THIS SECTION IS COMMENTED OUT BY DEFAULT                    #
+################################################################################
+################################################################################
+
+#################################
+# DATA SOURCES FOR SUBSCRIPTION #
+#################################
+
+data "azurerm_subscription" "primary" {}
+data "azuread_client_config" "current" {}
+
+#############################
+#   APP REGISTRATION AND    #
+#     SERVICE PRINCIPAL     #
+#############################
+
+# Ensure random ID for app_role
+resource "random_uuid" "boundary_app_role" {}
+
+# Ensure app registration
+resource "azuread_application" "boundary_app" {
+  display_name = "Boundary App"
+  owners       = [data.azuread_client_config.current.object_id]
+
+  app_role {
+    allowed_member_types = ["Application"]
+    description          = "Reader role enabling app to read subscription details"
+    display_name         = "Reader"
+    enabled              = true
+    id                   = random_uuid.boundary_app_role.result
+    value                = "Read.All"
+  }
 }
 
-output "server3" {
-  value = azurerm_linux_virtual_machine.server3.private_ip_address
+# Create a client secret
+resource "azuread_application_password" "client_secret" {
+  application_object_id = azuread_application.boundary_app.object_id
+}
+
+# Create a service principle for the application
+resource "azuread_service_principal" "boundary_service_principal" {
+  application_id = azuread_application.boundary_app.application_id
+}
+
+# Assign the Contributor role to the application service principle
+resource "azurerm_role_assignment" "contributor_role_assignment" {
+  scope                = data.azurerm_subscription.primary.id
+  role_definition_name = "Contributor"
+  principal_id         = azuread_service_principal.boundary_service_principal.object_id
+}
+
+#####################
+# EXTRA CLIENTS FOR #
+# DYNAMIC HOST SET  #
+#####################
+variable "client_username" {
+  default = "johndoe"
+}
+variable "client_count" {
+  type    = number
+  default = 5
+}
+
+# Ensure NIC for clients
+resource "azurerm_network_interface" "clients" {
+  name                = format("nic-client%02d", count.index + 1)
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  count               = var.client_count
+
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.private.id
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+
+# Ensure creation of SSH keypairs for clients
+resource "tls_private_key" "clients" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
+
+# Write private key to disk
+resource "local_file" "clients_private_key" {
+  content         = tls_private_key.clients.private_key_pem
+  filename        = "${path.module}/clients.pem"
+  file_permission = "0600"
+}
+
+# Ensure client VM's
+resource "azurerm_linux_virtual_machine" "clients" {
+  name                = format("vm-client%02d", count.index + 1)
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+  size                = "Standard_B1s"
+  admin_username      = var.client_username
+  count               = var.client_count
+  network_interface_ids = [
+    azurerm_network_interface.clients[count.index].id
+  ]
+
+  tags = {
+    service-type = "client"
+  }
+
+  admin_ssh_key {
+    username   = var.client_username
+    public_key = tls_private_key.clients.public_key_openssh
+  }
+
+  os_disk {
+    name                 = format("disk-os-client%02d", count.index + 1)
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts-gen2"
+    version   = "latest"
+  }
+
+  boot_diagnostics {
+    storage_account_uri = azurerm_storage_account.boundary.primary_blob_endpoint
+  }
 }
 
 output "azure-tenant-id" {
@@ -551,69 +658,5 @@ output "azure-client-id" {
 output "azure-client-secret" {
   value     = azuread_application_password.client_secret.value
   sensitive = true
-}
-
-/*
-#####################
-# EXTRA CLIENTS FOR #
-# DYNAMIC HOST SET  #
-#####################
-variable "client_username" {
-  default = "johndoe"
-}
-variable "client_count" {
-  type    = number
-  default = 10
-}
-
-# Ensure NIC for server3
-resource "azurerm_network_interface" "clients" {
-  name                = format("client-%02d-nic", count.index + 1)
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-  count               = var.client_count
-
-  ip_configuration {
-    name                          = "private-internal"
-    subnet_id                     = azurerm_subnet.private.id
-    private_ip_address_allocation = "Dynamic"
-  }
-}
-
-resource "azurerm_linux_virtual_machine" "clients" {
-  name                = format("client-%02d", count.index + 1)
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
-  size                = "Standard_B1s"
-  admin_username      = var.client_username
-  count               = 10
-  network_interface_ids = [
-    azurerm_network_interface.clients[count.index].id
-  ]
-
-  tags = {
-    service-type = "client"
-  }
-
-  admin_ssh_key {
-    username   = var.client_username
-    public_key = tls_private_key.servers.public_key_openssh
-  }
-
-  os_disk {
-    caching              = "ReadWrite"
-    storage_account_type = "Standard_LRS"
-  }
-
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts-gen2"
-    version   = "latest"
-  }
-
-  boot_diagnostics {
-    storage_account_uri = azurerm_storage_account.boundary.primary_blob_endpoint
-  }
 }
 */
