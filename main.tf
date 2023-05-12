@@ -491,23 +491,23 @@ resource "azurerm_linux_virtual_machine" "server03" {
 ###########
 
 output "vm-server01" {
-  value = azurerm_linux_virtual_machine.server01.private_ip_address
+  value = "${var.server_username}@${azurerm_linux_virtual_machine.server01.private_ip_address}"
 }
 
 output "vm-server02" {
-  value = azurerm_linux_virtual_machine.server02.private_ip_address
+  value = "${var.server_username}@${azurerm_linux_virtual_machine.server02.private_ip_address}"
 }
 
 output "vm-server03" {
-  value = azurerm_linux_virtual_machine.server03.private_ip_address
+  value = "${var.server_username}@${azurerm_linux_virtual_machine.server03.private_ip_address}"
 }
 
 output "vm-worker-egress" {
-  value = azurerm_linux_virtual_machine.worker-egress.private_ip_address
+  value = "${var.worker_username}@${azurerm_linux_virtual_machine.worker-egress.private_ip_address}"
 }
 
 output "vm-worker-ingress" {
-  value = azurerm_linux_virtual_machine.worker-ingress.public_ip_address
+  value = "${var.worker_username}@${azurerm_linux_virtual_machine.worker-ingress.public_ip_address}"
 }
 
 /*
