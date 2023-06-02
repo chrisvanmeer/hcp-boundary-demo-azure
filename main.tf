@@ -228,6 +228,19 @@ resource "azurerm_network_interface" "server03" {
   }
 }
 
+# Ensure NIC for server4-win
+resource "azurerm_network_interface" "server04" {
+  name                = "nic-server04"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.private.id
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+
 ##########################
 # SSH KEYPAIR FOR EGRESS #
 ##########################
@@ -382,7 +395,7 @@ resource "azurerm_linux_virtual_machine" "worker-egress" {
   }
 }
 
-# server1
+# server01
 resource "azurerm_linux_virtual_machine" "server01" {
   name                = "vm-server01"
   resource_group_name = azurerm_resource_group.rg.name
@@ -416,7 +429,7 @@ resource "azurerm_linux_virtual_machine" "server01" {
   }
 }
 
-# server2
+# server02
 resource "azurerm_linux_virtual_machine" "server02" {
   name                = "vm-server02"
   resource_group_name = azurerm_resource_group.rg.name
@@ -450,7 +463,7 @@ resource "azurerm_linux_virtual_machine" "server02" {
   }
 }
 
-# server3
+# server03
 resource "azurerm_linux_virtual_machine" "server03" {
   name                = "vm-server03"
   resource_group_name = azurerm_resource_group.rg.name
@@ -486,6 +499,46 @@ resource "azurerm_linux_virtual_machine" "server03" {
   }
 }
 
+# server04
+
+resource "random_password" "password" {
+  length      = 20
+  min_lower   = 1
+  min_upper   = 1
+  min_numeric = 1
+  min_special = 1
+  special     = true
+}
+resource "azurerm_windows_virtual_machine" "server04" {
+  name                = "vm-server04"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+  size                = "Standard_DS1_v2"
+  admin_username      = var.server_username
+  admin_password      = random_password.password.result
+  network_interface_ids = [
+    azurerm_network_interface.server04.id
+  ]
+
+  os_disk {
+    name                 = "disk-os-server04"
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2022-datacenter-azure-edition"
+    version   = "latest"
+  }
+
+
+  boot_diagnostics {
+    storage_account_uri = azurerm_storage_account.boundary.primary_blob_endpoint
+  }
+}
+
 ###########
 # OUTPUTS #
 ###########
@@ -500,6 +553,15 @@ output "vm-server02" {
 
 output "vm-server03" {
   value = "${var.server_username}@${azurerm_linux_virtual_machine.server03.private_ip_address}"
+}
+
+output "vm-server04" {
+  value = "${var.server_username}@${azurerm_windows_virtual_machine.server04.private_ip_address}"
+}
+
+output "vm-server04-password" {
+  value     = random_password.password.result
+  sensitive = true
 }
 
 output "vm-worker-egress" {

@@ -23,13 +23,13 @@ Terraform will provision the following:
 
 ### Azure
 
-- 5 Network interfaces
+- 6 Network interfaces
 - 1 Network security group
 - 1 Public IP address
 - 1 Resource group
 - 1 Storage account
 - 2 TLS keys
-- 5 Virtual machines
+- 6 Virtual machines
 - 2 Virtual networks
 - 2 Virtual subnets
 
@@ -271,8 +271,8 @@ You should be logged into `server1`.
 
 1. Create an SSH Target  
    Set the name *Server SSH*
-   Set the default port to 22.  
-   Set the assigned address to the private IP of `server1`.  
+   Set the default port to `22`.  
+   Set the assigned address to the private IP of `server01`.  
    Use `"ingress" in "/tags/type"` for the Ingress filter.  
    Use `"egress" in "/tags/type"` for the Egress filter.
 2. Create a static Credentials Store  
@@ -293,7 +293,7 @@ You should be logged into `server1`.
    boundary connect ssh -target-id=<target-id>
    ```
 
-You should be logged into `server1` without having to specify a user nor identity.
+You should be logged into `server01` without having to specify a user nor identity.
 
 ### HCP Boundary (4)
 
@@ -304,7 +304,7 @@ Next we will convert the target from a single destination to a Host Set.
    Give the Host Catalog a name.  
    Choose *Static* as Type.
 3. Click on Hosts
-4. Add `server1`, `server2`, and `server3` as hosts with their private IP addresses
+4. Add `server01`, `server02`, and `server03` as hosts with their private IP addresses
 5. Click on Host Sets and click New.
    Give the Host Set a name.
 6. Click on Hosts (within the Host Set)
@@ -330,12 +330,12 @@ Next we will convert the target from a single destination to a Host Set.
 
 ### HCP Boundary (5)
 
-In this last part we will create a Generic TCP target for our webserver
+In this second to last part we will create a Generic TCP target for our webserver
 
 1. Create a Generic TCP Target  
    Set the name *Web TCP*
-   Set the default port to 80.  
-   Set the assigned address to the private IP of `server3`.  
+   Set the default port to `80`.  
+   Set the assigned address to the private IP of `server03`.  
    Use `"ingress" in "/tags/type"` for the Ingress filter.  
    Use `"egress" in "/tags/type"` for the Egress filter.
 2. Copy the Target ID
@@ -349,3 +349,28 @@ In this last part we will create a Generic TCP target for our webserver
    ```
 
 You should see a custom web page
+
+### HCP Boundary (6)
+
+In this last part we will create a Generic TCP target for our windows server
+
+1. Create a Generic TCP Target  
+   Set the name *Windows TCP*
+   Set the default port to `3389`.  
+   Set the assigned address to the private IP of `server04`.  
+   Use `"ingress" in "/tags/type"` for the Ingress filter.  
+   Use `"egress" in "/tags/type"` for the Egress filter.
+
+### Client (5)
+
+1. Startup your Boundary desktop app and log in
+2. Click on the *Connect* button on the *Windows TCP* target
+3. Copy the proxy URL
+4. Startup your Microsoft Remote Desktop application
+5. Add a connection, using the proxy URL you just copied as the address
+6. (Optional) Configure display settings to not go fullscreen
+7. Connect to the session
+8. When prompted for the credentials, use *serveradmin* as the username
+9. You can find the password in the Terraform output (hint: output with `-json`)
+
+You should now be connected to the remote desktop
