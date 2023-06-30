@@ -58,12 +58,12 @@ Terraform will create outputs for all of the virtual machine IP addresses.
 ### Ingress worker
 
 1. Use the worker user to log into the ingress worker with SSH
-2. Install the `boundary-worker-hcp` package
+2. Install the `boundary-enterprise` package
 
    ```shell
    wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg >/dev/null
    echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
-   sudo apt update && sudo apt install boundary-worker-hcp
+   sudo apt update && sudo apt install boundary-enterprise
    ```
 
 3. Ensure directory structure
@@ -144,12 +144,12 @@ Terraform will create outputs for all of the virtual machine IP addresses.
 3. Reset the password for the worker admin user (`boundary` set as default in Terraform)
 4. Navigate to the serial console
 5. Log in with the worker admin user
-6. Install the `boundary-worker-hcp` package
+6. Install the `boundary-enterprise` package
 
    ```shell
    wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg >/dev/null
    echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
-   sudo apt update && sudo apt install boundary-worker-hcp
+   sudo apt update && sudo apt install boundary-enterprise
    ```
 
 7. Ensure directory structure
@@ -251,7 +251,7 @@ Terraform will create outputs for all of the virtual machine IP addresses.
    boundary authenticate
    ```
 
-   Be sure you have the `BOUNDARY_ADDR` and `BOUNDARY_AUTH_METHOD_ID` environment variables set.
+   Be sure you have the `BOUNDARY_ADDR` environment variable set.
 2. Connect to the *Server TCP* target
 
    ```shell
