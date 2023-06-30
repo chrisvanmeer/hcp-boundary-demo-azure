@@ -507,7 +507,7 @@ resource "random_password" "password" {
   min_upper   = 1
   min_numeric = 1
   min_special = 1
-  special     = true
+  special     = false
 }
 resource "azurerm_windows_virtual_machine" "server04" {
   name                = "vm-server04"
