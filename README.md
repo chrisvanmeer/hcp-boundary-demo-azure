@@ -112,7 +112,7 @@ Terraform will create outputs for all of the virtual machine IP addresses.
    User=boundary
    Group=boundary
    Type=simple
-   ExecStart=/usr/bin/boundary-worker server -config="/etc/boundary.d/ingress-worker.hcl"
+   ExecStart=/usr/bin/boundary server -config="/etc/boundary.d/ingress-worker.hcl"
 
    [Install]
    WantedBy=multi-user.target
@@ -196,7 +196,7 @@ Terraform will create outputs for all of the virtual machine IP addresses.
    User=boundary
    Group=boundary
    Type=simple
-   ExecStart=/usr/bin/boundary-worker server -config="/etc/boundary.d/egress-worker.hcl"
+   ExecStart=/usr/bin/boundary server -config="/etc/boundary.d/egress-worker.hcl"
 
    [Install]
    WantedBy=multi-user.target
@@ -226,22 +226,14 @@ Terraform will create outputs for all of the virtual machine IP addresses.
 1. Create an Org  
    Give the Org a name.
 2. Create a Project  
-   Give the Org a name.
-3. Create an SSH Target  
+   Give the Project a name.
+3. Create a Generic TCP Target  
    Set the name *Server TCP*
    Set the default port to 22.  
    Set the assigned address to the private IP of `server1`.  
    Use `"ingress" in "/tags/type"` for the Ingress filter.  
    Use `"egress" in "/tags/type"` for the Egress filter.
-4. Create a static Credentials Store  
-   Give the Credentials Store a name.
-5. Create a Credential  
-   Give it the name *serveradmin*.  
-   Select *username & key pair*.  
-   Use the server admin user and use the `server.pem` local file contents.
-6. Go back to the Target  
-   Inject the SSH credentials.
-7. Copy the Target ID
+4. Copy the Target ID
 
 ### Client (1)
 
